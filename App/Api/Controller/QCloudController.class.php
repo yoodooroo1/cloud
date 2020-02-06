@@ -82,16 +82,17 @@ class QCloudController extends BaseController
             $this->record['shop_status'] = self::SHOP_STATUS_ERROR;
             $this->record['error_msg'] = $rs['error_msg'];
         }
-        $this->record['market_type'] = self::MARKET_TYPE;
+        $this->record['cloud_market_type'] = self::MARKET_TYPE;
         $this->record['cloud_order_id'] = $this->req['orderId'];
         $this->record['creat_time'] = TIMESTAMP;
-//        $this->record['cloud_request_id'] = $this->req['requestId'];
         M('request_record')->add($this->record);
         jsonResponse($this->response);
     }
 
     /**续费**/
     public function renewInstance(){
+        echo 'success';
+        die();
         $shop_account_id = $this->req['singId'];
         $cloudInstance = D('MarketInstance')->getInstance($shop_account_id);
         if(!empty($cloudInstance)){
@@ -125,6 +126,8 @@ class QCloudController extends BaseController
 
     /**试用转正式**/
     public function modifyInstance(){
+        echo 'success';
+        die();
         $shop_account_id = $this->req['singId'];
         $cloudInstance = D('MarketInstance')->getInstance($shop_account_id);
         if(!empty($cloudInstance)){
@@ -163,12 +166,16 @@ class QCloudController extends BaseController
 
     /**过期**/
     public function expireInstance(){
+        echo 'success';
+        die();
         $this->response['success'] = "true";
         jsonResponse($this->response);
     }
 
     /**销毁**/
     public function destroyInstance(){
+        echo 'success';
+        die();
         $this->response['success'] = "true";
         jsonResponse($this->response);
     }
