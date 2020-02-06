@@ -1,0 +1,24 @@
+[ 2020-02-06T12:55:18+08:00 ] 127.0.0.1 /api.php?m=api&c=test&a=test
+ERR: 无法加载数据库驱动: Think\Db\Driver\
+
+[ 2020-02-06T12:55:26+08:00 ] 127.0.0.1 /api.php?m=api&c=test&a=test
+ERR: 无法加载数据库驱动: Think\Db\Driver\
+
+[ 2020-02-06T12:55:27+08:00 ] 127.0.0.1 /api.php?m=api&c=test&a=test
+ERR: 无法加载数据库驱动: Think\Db\Driver\
+
+[ 2020-02-06T12:55:27+08:00 ] 127.0.0.1 /api.php?m=api&c=test&a=test
+ERR: 无法加载数据库驱动: Think\Db\Driver\
+
+[ 2020-02-06T12:56:45+08:00 ] 127.0.0.1 /api.php?m=api&c=test&a=test
+ERR: 无法加载数据库驱动: Think\Db\Driver\
+
+[ 2020-02-06T13:42:44+08:00 ] 127.0.0.1 /api.php?m=api&c=test&a=test
+ERR: 无法加载数据库驱动: Think\Db\Driver\
+
+[ 2020-02-06T13:42:45+08:00 ] 127.0.0.1 /api.php?m=api&c=test&a=test
+ERR: 无法加载数据库驱动: Think\Db\Driver\
+
+[ 2020-02-06T14:18:18+08:00 ] 127.0.0.1 /api.php?m=api&c=test&a=test
+ERR: 无法加载数据库驱动: Think\Db\Driver\
+
