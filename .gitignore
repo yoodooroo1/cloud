@@ -1,4 +1,5 @@
 # 忽略运行时文件
+/*
 Runtime/
 
 # 忽略.idea
@@ -14,6 +15,6 @@ Runtime/
 # 跟踪ThinkPHP框架文件
 !/Core
 
-!TestController.class.php
+TestController.class.php
 
 /GLOBAL/global.php
