@@ -1,6 +1,0 @@
-[ 2020-02-06T12:47:44+08:00 ] 127.0.0.1 /interface.php
-INFO: 签名错误,
-[ 2020-02-06T12:48:23+08:00 ] 127.0.0.1 /interface.php?m=api&c=test&a=test
-INFO: 签名错误,
-[ 2020-02-06T12:48:25+08:00 ] 127.0.0.1 /interface.php?m=api&c=test&a=test
-INFO: 签名错误,

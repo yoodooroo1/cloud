@@ -1,0 +1,19 @@
+# 忽略运行时文件
+Runtime/
+
+# 忽略.idea
+.idea/
+
+# 忽略.svn
+.svn/
+
+
+# 跟踪.gitignore文件
+!.gitignore
+
+# 跟踪ThinkPHP框架文件
+!/Core
+
+!TestController.class.php
+
+/GLOBAL/global.php
