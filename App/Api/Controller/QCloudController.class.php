@@ -22,6 +22,7 @@ class QCloudController extends BaseController
     {
         parent::__construct();
         C('MARKET_TYPE',self::MARKET_TYPE);
+        writeLogs(jsonEncode($this->req,256),QCLOUD_LOG_PATH);
     }
 
     public function index(){
@@ -92,7 +93,8 @@ class QCloudController extends BaseController
 
     /**续费**/
     public function renewInstance(){
-        echo 'success';
+        $this->response['success'] = "true";
+        jsonResponse($this->response);
         die();
         $shop_account_id = $this->req['singId'];
         $cloudInstance = D('MarketInstance')->getInstanceByShopId($shop_account_id);
@@ -127,11 +129,8 @@ class QCloudController extends BaseController
 
     /**试用转正式**/
     public function modifyInstance(){
-        $this->response['success'] = "true";
-        jsonResponse($this->response);
-        die();
         $shop_account_id = $this->req['singId'];
-        $cloudInstance = D('MarketInstance')->getInstance($shop_account_id);
+        $cloudInstance = D('MarketInstance')->getInstanceByShopId($shop_account_id);
         if(!empty($cloudInstance)){
             if($cloudInstance['is_try'] == 1){
                 $XXModifyData = D('MarketInstance')->resolveQCloudModifyParams($this->req);
@@ -141,19 +140,19 @@ class QCloudController extends BaseController
                 $log_str = '[QCloud -> modifyInstance] rs : '.$rs;
                 writeLogs($log_str,$rs);
                 $rs = json_decode($rs,256);
-                if($rs['code'] == 200){
+                if($rs['code'] == CODE_SUCCESS){
                     D('MarketInstance')->setModifyInstance($this->req,$cloudInstance['shop_account_id']);
                     $this->response['success'] = 'true';
-                    $this->record['shop_status'] = 1;
-                }else if($rs['code'] == 500){
-                    $this->record['shop_status'] = 2;
+                    $this->record['shop_status'] = self::SHOP_STATUS_SUCCESS;
+                }else if($rs['code'] == CODE_ERROR){
+                    $this->record['shop_status'] = self::SHOP_STATUS_ERROR;
                     $this->record['error_msg'] = $rs['error_msg'];
-                }else{
-                    $this->record['shop_status'] = -1;
                 }
+                $this->record['cloud_request_action'] = $this->getAction();
+                $this->record['cloud_market_type'] = self::MARKET_TYPE;
                 $this->record['cloud_order_id'] = $this->req['orderId'];
-                $this->record['cloud_request_id'] = $this->req['requestId'];
-                D('MarketRequestRecord')->addRequestRecord($this->record);
+                $this->record['creat_time'] = TIMESTAMP;
+                M('request_record')->add($this->record);
             }else{
                 $log_str = '[QCloud -> modifyInstance] err : 商品非试用';
                 writeLogs($log_str,QCLOUD_LOG_PATH);

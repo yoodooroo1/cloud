@@ -42,6 +42,7 @@ class BaseController extends \Common\Controller\BaseController
             die('error');
         }
 
+
     }
 
     protected function setAction($action){

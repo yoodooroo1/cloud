@@ -30,7 +30,7 @@ class MarketInstanceModel extends BaseModel
         return NULL;
     }
 
-    /**解析腾讯云开户请求参数
+    /**解析腾讯云开户请求参数为代理商接口参数
      * @param array $params
      * @return array
      **/
@@ -38,7 +38,7 @@ class MarketInstanceModel extends BaseModel
         $data = [];
         $data['cloud_market_type'] = $this->getMarketType();
         $productInfo = $params['productInfo'];
-        if($productInfo['isTrial'] === "true"){
+        if($productInfo['isTrail'] === "true"){
             $data['is_try'] = '1';
         }else{
             $timeUnit = $productInfo['timeUnit'];
@@ -52,10 +52,10 @@ class MarketInstanceModel extends BaseModel
                 $timeLong = 84600 * $timeSpan;
             }
             $data['is_try'] = '0';
-            $data['vip_time'] = $timeLong;
-            $data['spec_name'] = $productInfo['spec'];
             $data['age_limit'] = $timeSpan;
+            $data['vip_time'] = $timeLong;
         }
+        $data['spec_name'] = $productInfo['spec'];
         $data['cloud_product_id'] = $params['productId'];
         $data['qcloud_openid'] = $params['openId'];
         if($params['extendInfo']){
@@ -79,15 +79,17 @@ class MarketInstanceModel extends BaseModel
         return $data;
     }
 
-    /**解析腾讯云测试转正式请求参数
+    /**解析腾讯云实例变更请求参数为代理商接口参数
      * @param array $params
      * @return array
      **/
     public function resolveQCloudModifyParams($params = []){
         $data = [];
+        $timeSpan = (int)$params['timeSpan'];
         $data['cloud_market_type'] = $this->getMarketType();
         $data['account_id'] = $params['signId'];
         $data['vip_time'] =  (int)strtotime($params['instanceExpireTime']);
+        $data['age_limit'] = $timeSpan;
         $data['spec_name'] = (string)$params['spec'];
         $data['cloud_product_id'] = $params['productId'];
         return $data;
@@ -100,7 +102,7 @@ class MarketInstanceModel extends BaseModel
     public function addQCloudInstance($params = [], $data = []){
         $parameters = [];
         $productInfo = $params['productInfo'];
-        if($productInfo['isTrial'] === "true"){
+        if($productInfo['isTrail'] === "true"){
             $parameters['is_try'] = '1';
         }else{
             $parameters['is_try'] = '0';
