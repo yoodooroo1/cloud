@@ -11,13 +11,18 @@ namespace Common\Model;
 
 class MarketInstanceModel extends BaseModel
 {
+    const DELETE = 1;
+    const NOT_DELETE = 0;
     protected $tableName = 'market_instance';
 
     /**获取实例单信息
      * @param $id
      * @return array
      **/
-    public function getInstance($id = 0){
+    public function getInstanceByShopId($id = 0){
+        $where = [];
+        $where['is_delete'] = self::NOT_DELETE;
+        $where['shop_account_id'] = $id;
         $data = $this->where(array('shop_account_id'=>$id))->find();
         if($data){
             return $data;
