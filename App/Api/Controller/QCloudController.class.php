@@ -16,12 +16,13 @@ class QCloudController extends BaseController
     const SHOP_STATUS_ERROR = 2;
 
     protected $response = [];
-    protected $record = [];
+    protected $cloudOrderId = '';
 
     public function __construct()
     {
         parent::__construct();
         C('MARKET_TYPE',self::MARKET_TYPE);
+        $this->cloudOrderId = $this->req['orderId'];
         writeLogs(jsonEncode($this->req,256),QCLOUD_LOG_PATH);
     }
 
@@ -62,33 +63,36 @@ class QCloudController extends BaseController
         $XXShopOpenData = D('MarketInstance')->resolveQCloudOpenParams($this->req);
         $log_str = '[QCloud -> createInstance] post : '.json_encode($XXShopOpenData,256)."\n\r";
         writeLogs($log_str,QCLOUD_LOG_PATH);
+
         $rs = postCurl($this->getYysUrl('openShop'),$XXShopOpenData);
         $log_str = '[QCloud -> createInstance] rs : '.$rs."\n\r";
         writeLogs($log_str,QCLOUD_LOG_PATH);
         $rs = json_decode($rs,256);
         if($rs && $rs['code'] == CODE_SUCCESS){
-            $data = $rs['data'];
-            D('MarketInstance')->addQCloudInstance($this->req,$data);
-            $this->record['shop_order_id'] = $data['order_id'];
-            $this->record['shop_status'] = self::SHOP_STATUS_SUCCESS;
-            $this->response['signId'] = $data['account_id'];
+            $shopData = $rs['data'];
+            D('MarketInstance')->addQCloudInstance($this->req,$shopData);
+            $shopOrderId = $shopData['order_id'];
+            $this->response['signId'] = $shopData['account_id'];
             $appInfo = [];
-            $appInfo['website'] = $data['index_url'];
-            $additionalInfo = [];
+            $appInfo['website'] = $shopData['index_url'];
             $this->response['appInfo'] = $appInfo;
+            $additionalInfo = [];
             $this->response['additionalInfo'] = $additionalInfo;
-            $this->response['additionalInfo']['user'] = $data['user'];
-            $this->response['additionalInfo']['password'] = $data['password'];
-        }else if($rs['code'] == CODE_ERROR){
-            $this->record['shop_status'] = self::SHOP_STATUS_ERROR;
-            $this->record['error_msg'] = $rs['error_msg'];
+            $this->response['additionalInfo']['user'] = $shopData['user'];
+            $this->response['additionalInfo']['password'] = $shopData['password'];
+            D('RequestRecord')->addRecord($this->cloudOrderId,$shopOrderId,self::SHOP_STATUS_SUCCESS);
+            jsonResponse($this->response);
         }
-        $this->record['cloud_request_action'] = $this->getAction();
-        $this->record['cloud_market_type'] = self::MARKET_TYPE;
-        $this->record['cloud_order_id'] = $this->req['orderId'];
-        $this->record['creat_time'] = TIMESTAMP;
-        M('request_record')->add($this->record);
-        jsonResponse($this->response);
+        else if($rs['code'] == CODE_ERROR){
+            $errorMsg = $rs['error_msg'];
+            D('RequestRecord')->addRecord($this->cloudOrderId,0,self::SHOP_STATUS_ERROR,$errorMsg);
+        }
+        else{
+            $log_str = '[QCloud -> createInstance] err: 运营商开户接口请求失败 , 腾讯单号:'.$this->cloudOrderId."\n\r";
+            writeLogs($log_str,QCLOUD_LOG_PATH);
+        }
+
+        die();
     }
 
     /**续费**/
@@ -129,40 +133,46 @@ class QCloudController extends BaseController
 
     /**试用转正式**/
     public function modifyInstance(){
-        $shop_account_id = $this->req['singId'];
-        $cloudInstance = D('MarketInstance')->getInstanceByShopId($shop_account_id);
+        $shopAccountId = $this->req['singId'];
+        $cloudInstance = D('MarketInstance')->getInstanceByAccountId($shopAccountId);
         if(!empty($cloudInstance)){
             if($cloudInstance['is_try'] == 1){
                 $XXModifyData = D('MarketInstance')->resolveQCloudModifyParams($this->req);
                 $log_str = '[QCloud -> modifyInstance] post : '.json_encode($XXModifyData,256);
                 writeLogs($log_str,QCLOUD_LOG_PATH);
-                $rs = postCurl('',$XXModifyData);
+
+                $rs = postCurl($this->getYysUrl('openShop'),$XXModifyData);
                 $log_str = '[QCloud -> modifyInstance] rs : '.$rs;
                 writeLogs($log_str,$rs);
                 $rs = json_decode($rs,256);
-                if($rs['code'] == CODE_SUCCESS){
+                if($rs && $rs['code'] == CODE_SUCCESS){
+                    $shopData = $rs['data'];
+                    $shopOrderId = $shopData['order_id'];
                     D('MarketInstance')->setModifyInstance($this->req,$cloudInstance['shop_account_id']);
+                    D('RequestRecord')->addRecord($this->cloudOrderId,$shopOrderId,self::SHOP_STATUS_SUCCESS);
                     $this->response['success'] = 'true';
-                    $this->record['shop_status'] = self::SHOP_STATUS_SUCCESS;
-                }else if($rs['code'] == CODE_ERROR){
+                    jsonResponse($this->response);
+                }
+                else if($rs['code'] == CODE_ERROR){
                     $this->record['shop_status'] = self::SHOP_STATUS_ERROR;
                     $this->record['error_msg'] = $rs['error_msg'];
                 }
-                $this->record['cloud_request_action'] = $this->getAction();
-                $this->record['cloud_market_type'] = self::MARKET_TYPE;
-                $this->record['cloud_order_id'] = $this->req['orderId'];
-                $this->record['creat_time'] = TIMESTAMP;
-                M('request_record')->add($this->record);
-            }else{
-                $log_str = '[QCloud -> modifyInstance] err : 商品非试用';
-                writeLogs($log_str,QCLOUD_LOG_PATH);
-                jsonResponse($this->response);
+                else{
+                    $log_str = '[QCloud -> modifyInstance] err: 运营商开户接口请求失败 , 腾讯单号:'.$this->cloudOrderId."\n\r";
+                    writeLogs($log_str,QCLOUD_LOG_PATH);
+                }
             }
-        }else{
-            $log_str = '[QCloud -> modifyInstance] err : 未找到实例';
-            writeLogs($log_str,QCLOUD_LOG_PATH);
-            jsonResponse($this->response);
+            else{
+                $log_str = '[QCloud -> modifyInstance] err : 商品非试用 , 腾讯单号:'.$this->cloudOrderId.' , AccountId:'.$shopAccountId."\n\r";
+                writeLogs($log_str,QCLOUD_LOG_PATH);
+            }
         }
+        else{
+            $log_str = '[QCloud -> modifyInstance] err : 未找到实例 , 腾讯单号:'.$this->cloudOrderId.' , '.$shopAccountId."\n\r";
+            writeLogs($log_str,QCLOUD_LOG_PATH);
+        }
+
+        die();
     }
 
     /**过期**/

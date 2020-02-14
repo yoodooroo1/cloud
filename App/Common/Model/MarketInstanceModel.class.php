@@ -11,17 +11,15 @@ namespace Common\Model;
 
 class MarketInstanceModel extends BaseModel
 {
-    const DELETE = 1;
-    const NOT_DELETE = 0;
     protected $tableName = 'market_instance';
 
     /**获取实例单信息
      * @param $id
      * @return array
      **/
-    public function getInstanceByShopId($id = 0){
+    public function getInstanceByAccountId($id = 0){
         $where = [];
-        $where['is_delete'] = self::NOT_DELETE;
+        $where['is_delete'] = NOT_DELETED;
         $where['shop_account_id'] = $id;
         $data = $this->where(array('shop_account_id'=>$id))->find();
         if($data){
@@ -117,7 +115,6 @@ class MarketInstanceModel extends BaseModel
         }
         $parameters['shop_account_id'] = $data['account_id'];
         $parameters['shop_member_id'] = $data['user'];
-        $parameters['shop_member_password'] = $data['password'];
         $parameters['cloud_qcloud_openid'] = $params['openId'];
         $parameters['cloud_market_type'] = $this->getMarketType();
         $parameters['cloud_account_id'] = $params['accountId'];

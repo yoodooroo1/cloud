@@ -9,6 +9,9 @@ defined('CODE_ERROR') or define('CODE_ERROR',500);
 defined('QCLOUD_LOG_PATH') or define('QCLOUD_LOG_PATH',LOG_PATH. 'QCloud/');
 defined('ERR_LOG_PATH') or define('ERR_LOG_PATH',LOG_PATH. 'Err/');
 
+define('NOT_DELETED', 0);
+define('DELETED', 1);
+
 /**
  * Created by PhpStorm.
  * User: Ydr
