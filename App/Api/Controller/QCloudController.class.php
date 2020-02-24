@@ -11,9 +11,9 @@ namespace Api\Controller;
 
 class QCloudController extends BaseController
 {
-    const MARKET_TYPE = 1;  //市场类型
-    const SHOP_STATUS_SUCCESS = 1;
-    const SHOP_STATUS_ERROR = 2;
+    const MARKET_TYPE = 1;  //腾讯云市场
+    const SHOP_STATUS_SUCCESS = 1;  //请求成功
+    const SHOP_STATUS_ERROR = 2;  //请求失败
 
     protected $response = [];
     protected $cloudOrderId = '';
