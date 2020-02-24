@@ -11,6 +11,8 @@ defined('ERR_LOG_PATH') or define('ERR_LOG_PATH',LOG_PATH. 'Err/');
 
 define('NOT_DELETED', 0);
 define('DELETED', 1);
+define('IS_TRY',1);
+define('NOT_TRY',0);
 
 /**
  * Created by PhpStorm.

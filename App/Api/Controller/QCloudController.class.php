@@ -85,7 +85,7 @@ class QCloudController extends BaseController
         }
         else if($rs['code'] == CODE_ERROR){
             $errorMsg = $rs['error_msg'];
-            D('RequestRecord')->addRecord($this->cloudOrderId,0,self::SHOP_STATUS_ERROR,$errorMsg);
+            D('RequestRecord')->addRecord($this->cloudOrderId,NULL,self::SHOP_STATUS_ERROR,$errorMsg);
         }
         else{
             $log_str = '[QCloud -> createInstance] err: 运营商开户接口请求失败 , 腾讯单号:'.$this->cloudOrderId."\n\r";
@@ -135,8 +135,7 @@ class QCloudController extends BaseController
     public function modifyInstance(){
         $shopAccountId = $this->req['singId'];
         $cloudInstance = D('MarketInstance')->getInstanceByAccountId($shopAccountId);
-        if(!empty($cloudInstance)){
-            if($cloudInstance['is_try'] == 1){
+        if(!empty($cloudInstance) && $cloudInstance['is_try'] == IS_TRY){
                 $XXModifyData = D('MarketInstance')->resolveQCloudModifyParams($this->req);
                 $log_str = '[QCloud -> modifyInstance] post : '.json_encode($XXModifyData,256);
                 writeLogs($log_str,QCLOUD_LOG_PATH);
@@ -154,18 +153,12 @@ class QCloudController extends BaseController
                     jsonResponse($this->response);
                 }
                 else if($rs['code'] == CODE_ERROR){
-                    $this->record['shop_status'] = self::SHOP_STATUS_ERROR;
-                    $this->record['error_msg'] = $rs['error_msg'];
+                    D('RequestRecord')->addRecord($this->cloudOrderId,NULL,self::SHOP_STATUS_SUCCESS);
                 }
                 else{
                     $log_str = '[QCloud -> modifyInstance] err: 运营商开户接口请求失败 , 腾讯单号:'.$this->cloudOrderId."\n\r";
                     writeLogs($log_str,QCLOUD_LOG_PATH);
                 }
-            }
-            else{
-                $log_str = '[QCloud -> modifyInstance] err : 商品非试用 , 腾讯单号:'.$this->cloudOrderId.' , AccountId:'.$shopAccountId."\n\r";
-                writeLogs($log_str,QCLOUD_LOG_PATH);
-            }
         }
         else{
             $log_str = '[QCloud -> modifyInstance] err : 未找到实例 , 腾讯单号:'.$this->cloudOrderId.' , '.$shopAccountId."\n\r";

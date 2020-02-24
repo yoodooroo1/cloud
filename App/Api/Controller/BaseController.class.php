@@ -62,8 +62,8 @@ class BaseController extends \Common\Controller\BaseController
         return $this->action;
     }
 
-    protected function getYysUrl($action = ''){
-        return YYS_URL.'index.php?m=api&c=Market&a='.$action;
+    protected function getYysUrl($action = '',$control ='Market'){
+        return YYS_URL.'index.php?m=api&c='.$control.'&a='.$action;
     }
 
 }

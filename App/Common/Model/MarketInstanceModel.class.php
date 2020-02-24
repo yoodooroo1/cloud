@@ -37,7 +37,7 @@ class MarketInstanceModel extends BaseModel
         $data['cloud_market_type'] = $this->getMarketType();
         $productInfo = $params['productInfo'];
         if($productInfo['isTrail'] === "true"){
-            $data['is_try'] = '1';
+            $data['is_try'] = IS_TRY;
         }else{
             $timeUnit = $productInfo['timeUnit'];
             $timeSpan = (int)$productInfo['timeSpan'];
@@ -49,7 +49,7 @@ class MarketInstanceModel extends BaseModel
             }else if($timeUnit === 'd'){
                 $timeLong = 84600 * $timeSpan;
             }
-            $data['is_try'] = '0';
+            $data['is_try'] = NOT_TRY;
             $data['age_limit'] = $timeSpan;
             $data['vip_time'] = $timeLong;
         }
@@ -101,9 +101,9 @@ class MarketInstanceModel extends BaseModel
         $parameters = [];
         $productInfo = $params['productInfo'];
         if($productInfo['isTrail'] === "true"){
-            $parameters['is_try'] = '1';
+            $parameters['is_try'] = IS_TRY;
         }else{
-            $parameters['is_try'] = '0';
+            $parameters['is_try'] = NOT_TRY;
             $parameters['cloud_product_spec'] = $productInfo['spec'];
             $parameters['expire_time'] = time()+(int)$params['vip_time'];
         }
