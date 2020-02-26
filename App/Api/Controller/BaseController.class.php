@@ -12,17 +12,16 @@ defined('QCLOUD_TOKEN') or define('QCLOUD_TOKEN','yk9LZyOiCxrTz8h6');  //腾讯�
 class BaseController extends \Common\Controller\BaseController
 {
 
-    private $allow_action = array(
+    private $action = NULL;
+
+    private $allowAction = array(
         'verifyInterface',
         'createInstance',
         'renewInstance',
         'modifyInstance',
         'expireInstance',
         'destroyInstance',
-        'test',
     );
-
-    private $action;
 
     public function __construct()
     {
@@ -47,7 +46,7 @@ class BaseController extends \Common\Controller\BaseController
 
     protected function setAction($action){
         if(!empty($action)){
-            if(in_array($action,$this->allow_action)){
+            if(in_array($action,$this->allowAction)){
                 $this->action = $action;
                 C('MARKET_ACTION', $this->action);
                 return $this;
@@ -62,7 +61,14 @@ class BaseController extends \Common\Controller\BaseController
         return $this->action;
     }
 
-    protected function getYysUrl($action = '',$control ='Market'){
+    /**
+     * 代理商接口
+     * @param string $action
+     * @param string $control
+     * @return string
+     * User: Ydr
+     */
+    protected function getShopApi($action = '',$control ='Market'){
         return YYS_URL.'index.php?m=api&c='.$control.'&a='.$action;
     }
 

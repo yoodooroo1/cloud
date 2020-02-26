@@ -23,7 +23,7 @@ class QCloudController extends BaseController
         parent::__construct();
         C('MARKET_TYPE',self::MARKET_TYPE);
         $this->cloudOrderId = $this->req['orderId'];
-        writeLogs(jsonEncode($this->req,256),QCLOUD_LOG_PATH);
+        writeLogs(jsonEncode($this->req),QCLOUD_LOG_PATH);
     }
 
     public function index(){
@@ -46,28 +46,33 @@ class QCloudController extends BaseController
             case 'destroyInstance' :
                 $this->destroyInstance();
                 break;
-            case 'test' :
-                $this->test();
-                break;
             default : die();
         }
     }
 
+    /**
+     * 修改发货Url
+     * User: Ydr
+     */
     public function verifyInterface(){
         $this->response['echoback'] = $this->req['echoback'];
         jsonResponse($this->response);
     }
 
-    /**实例创建**/
+    /**
+     * 实例创建
+     * User: Ydr
+     */
     public function createInstance(){
-        $XXShopOpenData = D('MarketInstance')->resolveQCloudOpenParams($this->req);
-        $log_str = '[QCloud -> createInstance] post : '.json_encode($XXShopOpenData,256)."\n\r";
+        $shopOpenData = D('MarketInstance')->getShopOpenData($this->req);
+        $log_str = '[QCloud -> createInstance] POST : '.json_encode($shopOpenData,JSON_UNESCAPED_UNICODE)."\n\r";
         writeLogs($log_str,QCLOUD_LOG_PATH);
 
-        $rs = postCurl($this->getYysUrl('openShop'),$XXShopOpenData);
-        $log_str = '[QCloud -> createInstance] rs : '.$rs."\n\r";
+        $rs = postCurl($this->getShopApi('openShop'),$shopOpenData);
+        $log_str = '[QCloud -> createInstance] RESULT : '.$rs."\n\r";
         writeLogs($log_str,QCLOUD_LOG_PATH);
-        $rs = json_decode($rs,256);
+
+        $rs = json_decode($rs,JSON_UNESCAPED_UNICODE);
         if($rs && $rs['code'] == CODE_SUCCESS){
             $shopData = $rs['data'];
             D('MarketInstance')->addQCloudInstance($this->req,$shopData);
@@ -84,39 +89,44 @@ class QCloudController extends BaseController
             jsonResponse($this->response);
         }
         else if($rs['code'] == CODE_ERROR){
-            $errorMsg = $rs['error_msg'];
+            $errorMsg = $rs['msg'];
             D('RequestRecord')->addRecord($this->cloudOrderId,NULL,self::SHOP_STATUS_ERROR,$errorMsg);
         }
         else{
-            $log_str = '[QCloud -> createInstance] err: 运营商开户接口请求失败 , 腾讯单号:'.$this->cloudOrderId."\n\r";
+            $log_str = '[QCloud -> createInstance] ERR : 运营商开户接口请求失败 , 腾讯单号:'.$this->cloudOrderId."\n\r";
             writeLogs($log_str,QCLOUD_LOG_PATH);
         }
 
         die();
     }
 
-    /**续费**/
+    /**
+     * 续费
+     * User: Ydr
+     */
     public function renewInstance(){
         $this->response['success'] = "true";
         jsonResponse($this->response);
         die();
-        $shop_account_id = $this->req['singId'];
-        $cloudInstance = D('MarketInstance')->getInstanceByShopId($shop_account_id);
+        $shopAccountId = $this->req['singId'];
+        $cloudInstance = D('MarketInstance')->getInstanceByAccountId($shopAccountId);
         if(!empty($cloudInstance)){
-            $XXRenewData = D('MarketInstance')->resolveQCloudRenewParams($this->req,$cloudInstance);
-            $log_str = '[QCloud -> renewInstance] post : '.json_encode($XXRenewData,256);
+            $shopRenewData = D('MarketInstance')->getShopRenewData($this->req,$cloudInstance);
+            $log_str = '[QCloud -> renewInstance] POST : '.json_encode($shopRenewData,JSON_UNESCAPED_UNICODE);
             writeLogs($log_str,QCLOUD_LOG_PATH);
-            $rs = postCurl('',$XXRenewData);
-            $log_str = '[QCloud -> renewInstance] rs : '.$rs;
+
+            $rs = postCurl('',$shopRenewData);
+            $log_str = '[QCloud -> renewInstance] RESULT : '.$rs;
             writeLogs($log_str,$rs);
-            $rs = json_decode($rs,256);
+
+            $rs = json_decode($rs,JSON_UNESCAPED_UNICODE);
             if($rs['code'] == 200){
                 $this->response['success'] = 'true';
                 $this->record['shop_status'] = 1;
                 D('MarketInstance')->setRenewInstance($this->req,$cloudInstance['shop_account_id']);
             }else if($rs['code'] == 500){
                 $this->record['shop_status'] = 2;
-                $this->record['error_msg'] = $rs['error_msg'];
+                $this->record['msg'] = $rs['msg'];
             }else{
                 $this->record['shop_status'] = -1;
             }
@@ -131,19 +141,23 @@ class QCloudController extends BaseController
         }
     }
 
-    /**试用转正式**/
+    /**
+     * 试用转正式
+     * User: Ydr
+     */
     public function modifyInstance(){
         $shopAccountId = $this->req['singId'];
         $cloudInstance = D('MarketInstance')->getInstanceByAccountId($shopAccountId);
         if(!empty($cloudInstance) && $cloudInstance['is_try'] == IS_TRY){
-                $XXModifyData = D('MarketInstance')->resolveQCloudModifyParams($this->req);
-                $log_str = '[QCloud -> modifyInstance] post : '.json_encode($XXModifyData,256);
+                $shopModifyData = D('MarketInstance')->getShopModifyData($this->req,$cloudInstance);
+                $log_str = '[QCloud -> modifyInstance] POST : '.json_encode($shopModifyData,JSON_UNESCAPED_UNICODE);
                 writeLogs($log_str,QCLOUD_LOG_PATH);
 
-                $rs = postCurl($this->getYysUrl('openShop'),$XXModifyData);
-                $log_str = '[QCloud -> modifyInstance] rs : '.$rs;
+                $rs = postCurl($this->getShopApi('renewShop'),$shopModifyData);
+                $log_str = '[QCloud -> modifyInstance] RESULT : '.$rs;
                 writeLogs($log_str,$rs);
-                $rs = json_decode($rs,256);
+
+                $rs = json_decode($rs,JSON_UNESCAPED_UNICODE);
                 if($rs && $rs['code'] == CODE_SUCCESS){
                     $shopData = $rs['data'];
                     $shopOrderId = $shopData['order_id'];
@@ -156,7 +170,7 @@ class QCloudController extends BaseController
                     D('RequestRecord')->addRecord($this->cloudOrderId,NULL,self::SHOP_STATUS_SUCCESS);
                 }
                 else{
-                    $log_str = '[QCloud -> modifyInstance] err: 运营商开户接口请求失败 , 腾讯单号:'.$this->cloudOrderId."\n\r";
+                    $log_str = '[QCloud -> modifyInstance] ERR: 运营商开户接口请求失败 , 腾讯单号:'.$this->cloudOrderId."\n\r";
                     writeLogs($log_str,QCLOUD_LOG_PATH);
                 }
         }
@@ -168,13 +182,19 @@ class QCloudController extends BaseController
         die();
     }
 
-    /**过期**/
+    /**
+     * 过期
+     * User: Ydr
+     */
     public function expireInstance(){
         $this->response['success'] = "true";
         jsonResponse($this->response);
     }
 
-    /**销毁**/
+    /**
+     * 销毁
+     * User: Ydr
+     */
     public function destroyInstance(){
         $this->response['success'] = "true";
         jsonResponse($this->response);

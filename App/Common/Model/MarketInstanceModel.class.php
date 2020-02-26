@@ -13,7 +13,8 @@ class MarketInstanceModel extends BaseModel
 {
     protected $tableName = 'market_instance';
 
-    /**获取实例单信息
+    /**
+     * 获取实例单信息
      * @param $id
      * @return array
      **/
@@ -28,11 +29,12 @@ class MarketInstanceModel extends BaseModel
         return NULL;
     }
 
-    /**解析腾讯云开户请求参数为代理商接口参数
+    /**
+     * 解析腾讯云开户参数
      * @param array $params
      * @return array
      **/
-    public function resolveQCloudOpenParams($params = []){
+    public function getShopOpenData($params = []){
         $data = [];
         $data['cloud_market_type'] = $this->getMarketType();
         $productInfo = $params['productInfo'];
@@ -62,12 +64,13 @@ class MarketInstanceModel extends BaseModel
         return $data;
     }
 
-    /**解析腾讯云续费请求参数
+    /**
+     * 解析腾讯云续费请求参数
      * @param array $params
      * @param array $instance
      * @return array
      **/
-    public function resolveQCloudRenewParams($params = [], $instance = []){
+    public function getShopRenewData($params = [], $instance = []){
         $data = [];
         $data['cloud_market_type'] = $this->getMarketType();
         $data['account_id'] = $params['signId'];
@@ -77,23 +80,26 @@ class MarketInstanceModel extends BaseModel
         return $data;
     }
 
-    /**解析腾讯云实例变更请求参数为代理商接口参数
+    /**
+     * 解析腾讯云实例变更(试用转正式)
      * @param array $params
+     * @param array $instanceInfo
      * @return array
-     **/
-    public function resolveQCloudModifyParams($params = []){
+     */
+    public function getShopModifyData($params = [],$instanceInfo = []){
         $data = [];
         $timeSpan = (int)$params['timeSpan'];
-        $data['cloud_market_type'] = $this->getMarketType();
-        $data['account_id'] = $params['signId'];
-        $data['vip_time'] =  (int)strtotime($params['instanceExpireTime']);
+//        $data['cloud_market_type'] = $this->getMarketType();
+        $data['account_id'] = $instanceInfo['shop_account_id'];
+//        $data['vip_time'] =  (int)strtotime($params['instanceExpireTime']);
         $data['age_limit'] = $timeSpan;
         $data['spec_name'] = (string)$params['spec'];
         $data['cloud_product_id'] = $params['productId'];
         return $data;
     }
 
-    /**实例创建
+    /**
+     * 实例创建
      * @param array $params 腾讯云参数
      * @param array $data   迅信参数
      **/
@@ -125,7 +131,8 @@ class MarketInstanceModel extends BaseModel
         $this->add($parameters);
     }
 
-    /**实例续费
+    /**
+     * 实例续费
      * @param array $params 腾讯参数
      * @param int $id 实例id
      **/
@@ -137,7 +144,8 @@ class MarketInstanceModel extends BaseModel
         $this->where(array('shop_account_id'=>$id))->save($parameters);
     }
 
-    /**实例转为正式
+    /**
+     * 实例转为正式
      * @param array $params 腾讯参数
      * @param int $id 实例id
      **/

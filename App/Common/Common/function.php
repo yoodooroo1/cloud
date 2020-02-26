@@ -139,6 +139,15 @@ function get_cfg_value($key = '', $name = 'site')
     }
 
 }
+
+/**验证签名
+ * @param $signature
+ * @param $token
+ * @param $timestamp
+ * @param $eventId
+ * @return bool
+ * User: Ydr
+ */
 function checkSignature($signature, $token, $timestamp, $eventId)
 {
     $currentTimestamp = time();
@@ -154,7 +163,13 @@ function checkSignature($signature, $token, $timestamp, $eventId)
     return $signature === $requestSignature;
 }
 
-/*日志*/
+/**
+ * 日志记录
+ * @param string $message
+ * @param string $path
+ * @param string $method
+ * User: Ydr
+ */
 function writeLogs($message = '',$path = '',$method = 'write'){
     if(empty($path)){
         $path = LOG_PATH;
